@@ -13,7 +13,7 @@ var yo = document.getElementById("result");
 var ctx = yo.getContext("2d");
 var config = {};
 var total = {};
-
+var canvasSize=512;
 function start(){
     if(state == "init"){
         state = "looping";
@@ -40,23 +40,26 @@ window.onload = function(){
     var picSelection = document.getElementById("targetToSelect");
     var targetCanvas = document.getElementById("target");
     var targetCtx = targetCanvas.getContext("2d");
-    targetCtx.clearRect(0, 0, 256, 256);
+    targetCtx.clearRect(0, 0, canvasSize, canvasSize);
     var image = new Image();
     image.onload = function(){
-        targetCtx.drawImage(image, 0, 0);
-        targetImageData = targetCtx.getImageData(0, 0, 256, 256);
+        targetCtx.drawImage(image, 0,0,canvasSize,canvasSize);
+        targetImageData = targetCtx.getImageData(0, 0, canvasSize, canvasSize);
         targetData = targetImageData.data;
     // Update existing image src on your page
     }
-    image.src = "/static/image/" + picSelection.value + ".png";
+    image.src = "" + picSelection.value;// + ".png";
     config.triangleNum = 80;
     config.point_max_mutate_rate = 0.0008;
     config.point_max_rate_mutate_range_down = 0;
-    config.point_max_rate_mutate_range_up = 255;
+    config.point_max_rate_mutate_range_up = canvasSize-1;
+    
     config.point_mid_mutate_rate = 0.003;
     config.point_mid_rate_mutate_range = 10;
+    
     config.point_min_mutate_rate = 0.009;
     config.point_min_rate_mutate_range = 5;
+    
     config.color_max_mutate_rate = 0.0008;
     config.color_max_rate_mutate_range_down = 0;
     config.color_max_rate_mutate_range_up = 255;
@@ -76,7 +79,7 @@ function setIt(){
         if(document.getElementById("point_max_rate_mutate_range_down").value >= document.getElementById("point_max_rate_mutate_range_up").value ||
            document.getElementById("color_max_rate_mutate_range_down").value >= document.getElementById("color_max_rate_mutate_range_up").value ||
            document.getElementById("point_max_rate_mutate_range_down").value < 0 ||
-           document.getElementById("point_max_rate_mutate_range_up").value > 255 ||
+           document.getElementById("point_max_rate_mutate_range_up").value > canvasSize-1 ||
            document.getElementById("color_max_rate_mutate_range_down").value < 0 ||
            document.getElementById("color_max_rate_mutate_range_up").value > 255){
             alert("Do not trick me. XD\r\ngoogle翻译:不要欺骗我.XD");
@@ -123,14 +126,14 @@ function changeSelect(val){
     var picSelection = document.getElementById("targetToSelect");
     var targetCanvas = document.getElementById("target");
     var targetCtx = targetCanvas.getContext("2d");
-    targetCtx.clearRect(0, 0, 256, 256);
+    targetCtx.clearRect(0, 0, canvasSize, canvasSize);
     var image = new Image();
     image.onload = function(){
-        targetCtx.drawImage(image, 0, 0);
-        targetImageData = targetCtx.getImageData(0, 0, 256, 256);
+        targetCtx.drawImage(image, 0, 0,canvasSize,canvasSize);
+        targetImageData = targetCtx.getImageData(0, 0, canvasSize, canvasSize);
         targetData = targetImageData.data;
     }
-    image.src = "/static/image/" + picSelection.value + ".png";
+    image.src = "" + picSelection.value;// + ".png";
     console.log(targetData);
 }
 
@@ -214,8 +217,8 @@ Color.prototype.mutate = function(){
 }
 
 function Point(x, y){
-    this.x = x || randWithNum(255);
-    this.y = y || randWithNum(255);
+    this.x = x || randWithNum(canvasSize-1);
+    this.y = y || randWithNum(canvasSize-1);
 }
 
 Point.max_mutate_rate = 0.0008;
@@ -230,13 +233,13 @@ Point.prototype.mutate = function(){
         totalMutated += 1;
     }
     else if(rand(config.point_mid_mutate_rate)){
-        this.x = Math.min(Math.max(0, this.x + randRange(-config.point_mid_rate_mutate_range, config.point_mid_rate_mutate_range)), 255);
-        this.y = Math.min(Math.max(0, this.y + randRange(-config.point_mid_rate_mutate_range, config.point_mid_rate_mutate_range)), 255);
+        this.x = Math.min(Math.max(0, this.x + randRange(-config.point_mid_rate_mutate_range, config.point_mid_rate_mutate_range)), canvasSize-1);
+        this.y = Math.min(Math.max(0, this.y + randRange(-config.point_mid_rate_mutate_range, config.point_mid_rate_mutate_range)), canvasSize-1);
         totalMutated += 1;
     }
     else if(rand(config.point_min_mutate_rate)){
-        this.x = Math.min(Math.max(0, this.x + randRange(-config.point_min_rate_mutate_range, config.point_min_rate_mutate_range)), 255);
-        this.y = Math.min(Math.max(0, this.y + randRange(-config.point_min_rate_mutate_range, config.point_min_rate_mutate_range)), 255);
+        this.x = Math.min(Math.max(0, this.x + randRange(-config.point_min_rate_mutate_range, config.point_min_rate_mutate_range)), canvasSize-1);
+        this.y = Math.min(Math.max(0, this.y + randRange(-config.point_min_rate_mutate_range, config.point_min_rate_mutate_range)), canvasSize-1);
         totalMutated += 1;
     }
     return totalMutated;
@@ -269,6 +272,17 @@ Triangle.prototype.mutate = function(){
 Triangle.prototype.draw = function(ctx){
     ctx.beginPath();
     ctx.fillStyle = 'rgb('+ this.color.r + ',' + this.color.g + ',' + this.color.b + ')';
+    
+   
+   // ctx.fillRect(this.points[0].x, this.points[0].y,30,30);
+    /*
+    ctx.strokeStyle = 'rgb('+ this.color.r + ',' + this.color.g + ',' + this.color.b + ')';
+    ctx.lineWidth = 5;
+    ctx.moveTo(this.points[0].x, this.points[0].y);
+	ctx.lineTo(this.points[1].x, this.points[1].y);
+	ctx.stroke();*/
+    
+    
     ctx.moveTo(this.points[0].x, this.points[0].y);
     ctx.lineTo(this.points[1].x, this.points[1].y);
     ctx.lineTo(this.points[2].x, this.points[2].y);
@@ -313,8 +327,8 @@ Drawing.prototype.dirty = function(){
     var dirtyOne = randWithNum(this.triangleNum);
     var dirtyP = randWithNum(4);
     if(dirtyP < 3){
-        this.triangles[dirtyOne].points[dirtyP].x = Math.min(Math.max(0, this.triangles[dirtyOne].points[dirtyP].x + randRange(-5, 5)), 255);
-        this.triangles[dirtyOne].points[dirtyP].y = Math.min(Math.max(0, this.triangles[dirtyOne].points[dirtyP].y + randRange(-5, 5)), 255);
+        this.triangles[dirtyOne].points[dirtyP].x = Math.min(Math.max(0, this.triangles[dirtyOne].points[dirtyP].x + randRange(-5, 5)), canvasSize-1);
+        this.triangles[dirtyOne].points[dirtyP].y = Math.min(Math.max(0, this.triangles[dirtyOne].points[dirtyP].y + randRange(-5, 5)), canvasSize-1);
     }
     else{
         this.triangles[dirtyOne].color.r = Math.min(Math.max(0, this.triangles[dirtyOne].color.r + randRange(-8, 8)), 255);
@@ -324,7 +338,7 @@ Drawing.prototype.dirty = function(){
 }
 
 Drawing.prototype.draw = function(){
-    this.ctx.clearRect(0, 0, 256, 256);
+    this.ctx.clearRect(0, 0, canvasSize, canvasSize);
     this.ctx.globalAlpha = config.color_alpha;
     for(var i = 0; i < this.triangles.length; i++){
         this.triangles[i].draw(this.ctx);
@@ -338,7 +352,7 @@ Drawing.prototype.calcRate = function(targetData){
     }
     this.draw();
     this.matchRate = 0;
-    var resultMatchRate = this.ctx.getImageData(0, 0, 256, 256);
+    var resultMatchRate = this.ctx.getImageData(0, 0, canvasSize, canvasSize);
     // for(i in resultMatchRate.data)
     for(var i = 0; i < resultMatchRate.data.length; i++){
         // alpha is out of our concern
@@ -353,13 +367,13 @@ Drawing.prototype.calcRate = function(targetData){
 }
 
 Drawing.prototype.drawIt = function(ctx){
-    ctx.clearRect(0, 0, 256, 256);
+    ctx.clearRect(0, 0, canvasSize, canvasSize);
     ctx.globalAlpha = 0.35;
     for(var i = 0; i < this.triangles.length; i++){
         this.triangles[i].draw(ctx);
     }
 }
-
+var count=1;
 function looping(parent, child, targetData, ctx){
     if(state == "looping"){
         var date = new Date();
@@ -374,6 +388,8 @@ function looping(parent, child, targetData, ctx){
         else{
             setTimeout(looping, 0, parent, child, targetData, ctx);
         }
+        count++;
+        console.log(count);
     }
     else if(state == "pause"){
         total.parent = parent;
